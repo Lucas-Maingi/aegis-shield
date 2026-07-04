@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  gateway:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - data-volume:/app
+    environment:
+      - AEGIS_DB_PATH=/app/aegis_shield.db
+      - AEGIS_UPSTREAM_BASE_URL=https://api.openai.com/v1
+
+  dashboard:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - data-volume:/app
+    environment:
+      - AEGIS_DB_PATH=/app/aegis_shield.db
+    command: ["streamlit", "run", "aegis_shield/dashboard.py", "--server.address=0.0.0.0"]
+    depends_on:
+      - gateway
+
+volumes:
+  data-volume:
