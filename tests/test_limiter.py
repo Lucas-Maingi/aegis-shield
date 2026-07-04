@@ -1,8 +1,6 @@
 """Tests for the Token Bucket rate limiter."""
 
-import time
 from aegis_shield.limiter import RateLimiter
-from aegis_shield.config import settings
 
 
 def test_rate_limiter_allows_under_limit():
@@ -28,10 +26,10 @@ def test_rate_limiter_refills():
     # 1 RPM capacity = 1, fill_rate = 1/60 per sec
     # Let's test with a higher rate so we don't sleep too long in tests
     assert limiter.check_limit("client_3", rpm=60) is True  # 1 req/sec fill
-    
+
     # Consume capacity (60)
     for _ in range(59):
         assert limiter.check_limit("client_3", rpm=60) is True
-        
+
     # Over capacity should block
     assert limiter.check_limit("client_3", rpm=60) is False

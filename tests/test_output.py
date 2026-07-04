@@ -2,7 +2,6 @@
 
 from aegis_shield.scanners.output import scan
 
-
 # ── API key leakage ──────────────────────────────────────────────────────
 
 def test_detects_openai_key_in_output():

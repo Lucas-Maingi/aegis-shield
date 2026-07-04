@@ -8,6 +8,7 @@ audit log of all scanned transits.
 from __future__ import annotations
 
 import sqlite3
+
 import pandas as pd
 import streamlit as st
 
@@ -35,7 +36,7 @@ def load_data():
     conn = get_connection()
     df = pd.read_sql_query("SELECT * FROM scan_log ORDER BY timestamp DESC", conn)
     conn.close()
-    
+
     # Ensure timestamp is datetime
     if not df.empty:
         df["timestamp"] = pd.to_datetime(df["timestamp"])
@@ -96,7 +97,7 @@ with chart_col2:
                     categories.append(f.get("category", "unknown"))
             except Exception:
                 pass
-                
+
     if categories:
         cat_counts = pd.Series(categories).value_counts().reset_index()
         cat_counts.columns = ["Threat Category", "Occurrences"]
@@ -126,10 +127,10 @@ if search_query:
 # Format data frame for presentation
 if not filtered_df.empty:
     display_df = filtered_df[[
-        "request_id", "timestamp", "client_ip", "model", "verdict", 
+        "request_id", "timestamp", "client_ip", "model", "verdict",
         "prompt_tokens", "completion_tokens", "upstream_latency_ms", "estimated_cost_usd"
     ]].copy()
-    
+
     st.dataframe(
         display_df,
         column_config={

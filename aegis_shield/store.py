@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from pathlib import Path
 
 from aegis_shield.config import settings
 from aegis_shield.models import ScanResult

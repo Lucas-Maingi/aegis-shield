@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import time
 from threading import Lock
+
 from aegis_shield.config import settings
 
 

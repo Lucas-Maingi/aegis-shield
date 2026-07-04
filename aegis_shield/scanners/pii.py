@@ -112,9 +112,10 @@ def scan(content: str) -> list[Finding]:
 
             # Kenyan ID pattern is broad (7-8 digits) — skip if it's
             # clearly part of a longer number or a year.
-            if label == "kenyan_id":
-                if len(matched) < 7 or matched.startswith("19") or matched.startswith("20"):
-                    continue
+            if label == "kenyan_id" and (
+                len(matched) < 7 or matched.startswith("19") or matched.startswith("20")
+            ):
+                continue
 
             # Truncate matched text to avoid logging full PII in findings.
             safe_preview = matched[:6] + "***" if len(matched) > 6 else matched

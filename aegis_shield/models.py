@@ -10,10 +10,8 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field
-
 
 # ── Enums ────────────────────────────────────────────────────────────────
 
@@ -92,8 +90,8 @@ class ProxyRequest(BaseModel):
     """
     model: str = "gpt-4o-mini"
     messages: list[dict] = Field(default_factory=list)
-    temperature: Optional[float] = None
-    max_tokens: Optional[int] = None
+    temperature: float | None = None
+    max_tokens: int | None = None
     stream: bool = False
 
     def system_prompt(self) -> str:

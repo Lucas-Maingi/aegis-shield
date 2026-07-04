@@ -1,7 +1,6 @@
 """Tests for the PII scanner."""
 
-from aegis_shield.scanners.pii import scan, _passes_luhn
-
+from aegis_shield.scanners.pii import _passes_luhn, scan
 
 # ── Email detection ──────────────────────────────────────────────────────
 
@@ -94,6 +93,5 @@ def test_multiple_pii_types_detected():
         "Card: 4111111111111111. SSN: 123-45-6789."
     )
     findings = scan(text)
-    categories = {f.detail for f in findings}
     # Should find at least email, phone, card, and SSN.
     assert len(findings) >= 4

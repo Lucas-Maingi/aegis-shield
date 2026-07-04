@@ -7,12 +7,12 @@ scanner on the outbound completion.
 
 from __future__ import annotations
 
+import contextlib
 import time
-from typing import Optional
 
 from aegis_shield.config import settings
-from aegis_shield.models import ScanResult, Verdict, Finding, ThreatCategory, ProxyRequest
-from aegis_shield.scanners import pii, injection, output
+from aegis_shield.models import Finding, ProxyRequest, ScanResult, Verdict
+from aegis_shield.scanners import injection, output, pii
 
 
 def scan_prompt(request: ProxyRequest, client_ip: str = "", api_key_hash: str = "") -> ScanResult:
@@ -32,21 +32,18 @@ def scan_prompt(request: ProxyRequest, client_ip: str = "", api_key_hash: str = 
 
     findings: list[Finding] = []
 
+    # Scanners should never crash the proxy; suppress and proceed.
+    # (In production, failures here would be logged.)
+
     # 1. Run PII Scanner if enabled
     if settings.pii_scan_enabled:
-        try:
+        with contextlib.suppress(Exception):
             findings.extend(pii.scan(all_text))
-        except Exception as e:
-            # Scanners should never crash the proxy; log and proceed.
-            # In production, we'd log this to stderr or a logging module.
-            pass
 
     # 2. Run Prompt Injection Scanner if enabled
     if settings.injection_scan_enabled:
-        try:
+        with contextlib.suppress(Exception):
             findings.extend(injection.scan(all_text))
-        except Exception as e:
-            pass
 
     result.findings = findings
 
@@ -65,9 +62,9 @@ def scan_prompt(request: ProxyRequest, client_ip: str = "", api_key_hash: str = 
 
 
 def scan_completion(
-    result: ScanResult, 
-    completion_text: str, 
-    system_prompt: str = "", 
+    result: ScanResult,
+    completion_text: str,
+    system_prompt: str = "",
     upstream_latency_ms: int = 0,
     start_time: float = 0.0
 ) -> ScanResult:
@@ -77,7 +74,7 @@ def scan_completion(
     """
     result.upstream_latency_ms = upstream_latency_ms
     result.completion_tokens_est = len(completion_text) // 4
-    
+
     if start_time > 0.0:
         result.total_latency_ms = int((time.perf_counter() - start_time) * 1000)
 
@@ -96,7 +93,7 @@ def scan_completion(
                 # Block the completion if it contains high or critical outputs (e.g. system leaks, api keys)
                 if any(f.severity in ("high", "critical") for f in output_findings):
                     result.verdict = Verdict.BLOCK
-        except Exception as e:
+        except Exception:
             pass
 
     return result

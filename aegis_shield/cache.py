@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from datetime import datetime, timezone
-from typing import Optional
+
 from aegis_shield.config import settings
 
 
@@ -34,7 +34,7 @@ class SemanticCache:
         """)
         self._conn.commit()
 
-    def get(self, prompt: str) -> Optional[dict]:
+    def get(self, prompt: str) -> dict | None:
         """Look up a prompt in the cache. Returns response dict if found."""
         cursor = self._conn.execute(
             "SELECT response_json FROM semantic_cache WHERE prompt = ?",

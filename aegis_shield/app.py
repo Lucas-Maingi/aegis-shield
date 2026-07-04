@@ -11,19 +11,25 @@ from __future__ import annotations
 import hashlib
 import time
 from contextlib import asynccontextmanager
-from typing import Dict, Any
 
 import httpx
-from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from aegis_shield import __version__
-from aegis_shield.config import settings
-from aegis_shield.models import HealthResponse, ProxyRequest, ScanResult, Verdict, Finding, ThreatCategory
-from aegis_shield.store import AuditStore
-from aegis_shield.gateway import scan_prompt, scan_completion
-from aegis_shield.limiter import RateLimiter
 from aegis_shield.cache import SemanticCache
+from aegis_shield.config import settings
+from aegis_shield.gateway import scan_completion, scan_prompt
+from aegis_shield.limiter import RateLimiter
+from aegis_shield.models import (
+    Finding,
+    HealthResponse,
+    ProxyRequest,
+    ScanResult,
+    ThreatCategory,
+    Verdict,
+)
+from aegis_shield.store import AuditStore
 
 # ── Lifespan & Dependency Management ─────────────────────────────────────
 
@@ -59,7 +65,7 @@ async def lifespan(app: FastAPI):
     _store = AuditStore()
     _limiter = RateLimiter()
     _cache = SemanticCache()
-    
+
     # Connection pooling for high performance
     _http_client = httpx.AsyncClient(
         timeout=settings.upstream_timeout_seconds,
@@ -123,7 +129,7 @@ async def chat_completions(
     """Proxy endpoint mimicking OpenAI's chat/completions API structure."""
     start_time = time.perf_counter()
     client_ip = request.client.host if request.client else "unknown"
-    
+
     # Extract API Key from headers (if provided) to identify user/token bucket
     auth_header = request.headers.get("Authorization")
     api_key_hash = _hash_api_key(auth_header)
@@ -180,7 +186,7 @@ async def chat_completions(
 
     # 4. Proxy request to upstream LLM
     upstream_url = f"{settings.upstream_base_url.rstrip('/')}/chat/completions"
-    
+
     headers = {}
     if auth_header:
         headers["Authorization"] = auth_header
@@ -188,7 +194,7 @@ async def chat_completions(
         # Fallback to configured key if client did not supply one
         if settings.upstream_api_key:
             headers["Authorization"] = f"Bearer {settings.upstream_api_key}"
-            
+
     headers["Content-Type"] = "application/json"
 
     # Forward identical parameters
@@ -205,7 +211,7 @@ async def chat_completions(
         raise HTTPException(
             status_code=502,
             detail=f"Failed to communicate with upstream LLM provider: {str(e)}"
-        )
+        ) from e
     upstream_latency_ms = int((time.perf_counter() - upstream_start) * 1000)
 
     if resp.status_code != 200:
@@ -215,16 +221,16 @@ async def chat_completions(
         )
 
     response_json = resp.json()
-    
+
     # Extract completion text to run outbound scan
     choices = response_json.get("choices", [])
     completion_text = choices[0].get("message", {}).get("content", "") if choices else ""
 
     # 5. Outbound Compliance Scan (Leaks & Refusal Bypasses)
     scan_result = scan_completion(
-        scan_result, 
-        completion_text, 
-        system_prompt=proxy_req.system_prompt(), 
+        scan_result,
+        completion_text,
+        system_prompt=proxy_req.system_prompt(),
         upstream_latency_ms=upstream_latency_ms,
         start_time=start_time
     )

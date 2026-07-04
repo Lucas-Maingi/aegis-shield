@@ -1,7 +1,6 @@
 """Tests for the prompt injection scanner."""
 
-from aegis_shield.scanners.injection import scan, _shannon_entropy
-
+from aegis_shield.scanners.injection import _shannon_entropy, scan
 
 # ── Layer 1: Keyword detection ───────────────────────────────────────────
 

@@ -1,6 +1,6 @@
 """Tests for the gateway scanner coordinator."""
 
-from aegis_shield.gateway import scan_prompt, scan_completion
+from aegis_shield.gateway import scan_completion, scan_prompt
 from aegis_shield.models import ProxyRequest, Verdict
 
 
@@ -45,7 +45,7 @@ def test_scan_completion_allows_clean_output():
     req = ProxyRequest(messages=[{"role": "user", "content": "Hello"}])
     result = scan_prompt(req)
     assert result.verdict == Verdict.ALLOW
-    
+
     final_result = scan_completion(result, "Hello! I am a financial assistant.")
     assert final_result.verdict == Verdict.ALLOW
     assert len(final_result.findings) == 0
@@ -55,7 +55,7 @@ def test_scan_completion_blocks_leaked_secrets():
     req = ProxyRequest(messages=[{"role": "user", "content": "Generate a key"}])
     result = scan_prompt(req)
     assert result.verdict == Verdict.ALLOW
-    
+
     final_result = scan_completion(result, "Here is the key: sk-abcdefghijklmnopqrstuvwxyz12345")
     assert final_result.verdict == Verdict.BLOCK
     assert len(final_result.findings) >= 1
