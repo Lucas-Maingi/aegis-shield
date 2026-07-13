@@ -118,9 +118,17 @@ Response (HTTP 400):
 
 ---
 
+## 🔬 Security Documentation
+
+- **[Attack examples](docs/attack-examples.md)** — 10 real payloads (PII, DAN jailbreaks, role smuggling, Base64 obfuscation, key leaks) with the exact scanner layer that catches each and the response the client sees.
+- **[Threat model](docs/threat-model.md)** — the full T1–T9 table of what's defended, the *explicitly out-of-scope* list (novel phrasings, multilingual, multi-turn, homoglyphs), and the hardening roadmap in priority order.
+- **[Benchmarks](docs/benchmarks.md)** — measured scanner overhead: ~1.6 ms p50 for the full inbound pipeline on 2,000-char inputs, methodology included.
+
+---
+
 ## 🧪 Testing
 
-Aegis Shield contains a robust test suite covering all modules.
+Aegis Shield contains a robust test suite covering all modules (56 tests).
 
 ```bash
 # Run pytest with full verbosity
